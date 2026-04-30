@@ -18,3 +18,15 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka
 
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          netflix:
+            eureka: warn
+          client:
+            discovery: warn
+    com:
+      netflix:
+        discovery: warn
