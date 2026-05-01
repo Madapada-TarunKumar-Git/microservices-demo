@@ -1,7 +1,5 @@
 package com.example.orderservice.controller;
 
-import com.example.orderservice.client.ProductClient;
-import com.example.orderservice.client.UserClient;
 import com.example.orderservice.dto.OrderResponse;
 import com.example.orderservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
