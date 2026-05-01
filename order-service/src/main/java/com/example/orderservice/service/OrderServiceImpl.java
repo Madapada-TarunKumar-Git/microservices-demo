@@ -7,6 +7,8 @@ import com.example.orderservice.dto.ProductDto;
 import com.example.orderservice.entity.Order;
 import com.example.orderservice.mapper.OrderMapper;
 import com.example.orderservice.repo.OrderRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,14 +23,29 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse createOrder(Long userId, Long productId) {
         userClient.getUser(userId);
-        ProductDto product = productClient.getProduct(productId);
+        ProductDto product = fetchProduct(productId);
         Order order = new Order(
                 userId,
                 productId,
                 product.price(),
-                "CREATED"
+                product.price() == 0.0 ? "CREATED_WITH_FALLBACK" : "CREATED"
         );
         Order saved = orderRepository.save(order);
         return orderMapper.toResponse(saved);
+    }
+
+    @CircuitBreaker(name = "productService", fallbackMethod = "productFallback")
+    @Retry(name = "productService")
+    public ProductDto fetchProduct(Long productId) {
+        return productClient.getProduct(productId);
+    }
+
+    //Fallback method
+    public ProductDto productFallback(Long productId, Throwable ex) {
+        return new ProductDto(
+                productId,
+                "DEFAULT_PRODUCT",
+                0.0
+        );
     }
 }
